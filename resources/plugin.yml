@@ -1,0 +1,6 @@
+main: com.fanta.Main.Main
+name: ForServer
+version: 0.1
+author: AndrewKlygin
+api-version: 1.16
+commands:
