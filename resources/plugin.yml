@@ -4,3 +4,4 @@ version: 0.1
 author: AndrewKlygin
 api-version: 1.16
 commands:
+  eff:

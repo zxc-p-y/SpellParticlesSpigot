@@ -41,15 +41,15 @@ public class ParticleEffects {
         }
     }
 
-    public static void immolationEffect(Location loc) {
-        Random rand = new Random();
-        for (int i = 0; i < 2; i++) {
-            double randomX = rand.nextInt(70) * 0.01;
-            double randomY= rand.nextInt(50) * 0.01;
-            double randomZ = rand.nextInt(70) * 0.01;
-            loc.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR, loc.add(randomX, randomY, randomZ), 1);
-        }
-    }
+//    public static void immolationEffect(Location loc) {
+//        Random rand = new Random();
+//        for (int i = 0; i < 2; i++) {
+//            double randomX = rand.nextInt(70) * 0.01;
+//            double randomY= rand.nextInt(50) * 0.01;
+//            double randomZ = rand.nextInt(70) * 0.01;
+//            loc.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR, loc.add(randomX, randomY, randomZ), 1);
+//        }
+//    }
 
 
     //return total ticks before reaching final point
@@ -116,7 +116,7 @@ public class ParticleEffects {
 
     public static void drawCircle(Location center, int radius, int r, int g, int b) {
         int scaleX = radius;  // use these to tune the size of your circle
-        int scaleZ = radius/2;
+        int scaleZ = radius;
         double density = 0.04;  // smaller numbers make the particles denser
 
         for (double i=0; i < 2 * Math.PI ; i +=density) {
@@ -124,6 +124,19 @@ public class ParticleEffects {
             double z = Math.sin(i) * scaleZ;
 //		     center.getWorld().spawnParticle(Particle.SPELL_MOB, center.getX()+x, center.getY(), center.getZ()+z, 0, 255/255, 0/255, 0/255, 1);
             center.getWorld().spawnParticle(Particle.REDSTONE, center.getX()+x, center.getY(), center.getZ()+z,
+                    0, 0.001, 1, 0, 1, new Particle.DustOptions(Color.fromBGR(b, g, r), 1));
+        }
+    }
+    public static void drawCircle(Location center, double radius, double y_up, int r, int g, int b) {
+        double scaleX = radius;  // use these to tune the size of your circle
+        double scaleZ = radius;
+        double density = 0.04;  // smaller numbers make the particles denser
+
+        for (double i=0; i < 2 * Math.PI ; i +=density) {
+            double x = Math.cos(i) * scaleX;
+            double z = Math.sin(i) * scaleZ;
+//		     center.getWorld().spawnParticle(Particle.SPELL_MOB, center.getX()+x, center.getY(), center.getZ()+z, 0, 255/255, 0/255, 0/255, 1);
+            center.getWorld().spawnParticle(Particle.REDSTONE, center.getX()+x, center.getY()+y_up, center.getZ()+z,
                     0, 0.001, 1, 0, 1, new Particle.DustOptions(Color.fromBGR(b, g, r), 1));
         }
     }
@@ -152,7 +165,6 @@ public class ParticleEffects {
                 (loc1.getY()+loc2.getY())/2,
                 (loc1.getZ()+loc2.getZ())/2);
     }
-
 
     public static void spawnTowerExplosions(Location loc, Main main, int dispXZ, int dispY) {
         Random rand = new Random();
@@ -224,14 +236,72 @@ public class ParticleEffects {
         }
     }
 
+    public static void immolationEffect(Player player, Main main) {
+        if (Utils.getMetadata(player, Strings.mdHitKey, main) == null) {
+            player.getWorld().playSound(player.getLocation(), Sound.BLOCK_BELL_USE, 1.0F, 1.0F);
+            int counter = Bukkit.getScheduler().scheduleSyncRepeatingTask(main,  new Runnable() {
+                public void run() {
+                    ParticleEffects.drawCircle(player.getLocation(), 0.6,0.9, 200,0,0);
+                }
+            }, 0, 2L);
+            Utils.setMetadata(player, Strings.mdHitKey, counter, main);
+        }
+    }
+
     public enum Intencity {
         Low,
         Normal,
         High,
         Massive
     }
+//    public static void immolationEffect(Player player, Main main){
+//        if (Utils.getMetadata(player, Strings.mdHitKey, main) == null) {
+//            player.getWorld().playSound(player.getLocation(), Sound.BLOCK_BELL_USE, 1.0F, 1.0F);
+//            int counter = Bukkit.getScheduler().scheduleSyncRepeatingTask(main,  new Runnable() {
+//                public void run() {
+//                    player.getLocation().getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME, player.getLocation().getX(),player.getLocation().getY()+1,player.getLocation().getZ(), 1);
+//                }
+//            }, 0, 2L);
+//            Utils.setMetadata(player, Strings.mdHitKey, counter, main);
+//        }
+//    }
+
+    public static void bigJump(Player player, Main main) {
+        BukkitRunnable task = new BukkitRunnable() {  @Override
+        public void run() {  conesAirFlow(player, main, 35, 6, 10); }
+        };
+        task.runTaskLater(main, 3L);
+
+        BukkitRunnable task2 = new BukkitRunnable() {  @Override
+        public void run() {  conesAirFlow(player, main, 18, 5, 6); }
+        };
+        task2.runTaskLater(main, 4L);
+
+        BukkitRunnable task3 = new BukkitRunnable() {  @Override
+        public void run() {  conesAirFlow(player, main, 9, 4, 3); }
+        };
+        task3.runTaskLater(main, 5L);
+    }
 
 
-
+    private static void conesAirFlow(Player player, Main main, int particleNumber, int radius, int offsetNormalized) {
+//        player.getWorld().spawnParticle(Particle.EXPLOSION_NORMAL, Utils.addingLoc(player.getLocation(), 0,-0.3,0), 1);
+        ArrayList<Location> locations = new ArrayList<>();
+        Random rand = new Random();
+        for (int i = 0; i < particleNumber; i++) {
+            double randomX = rand.nextInt(radius) - radius/2;
+            double randomY = rand.nextInt(radius) - radius/2;
+            double randomZ = rand.nextInt(radius) - radius/2;
+            locations.add(player.getLocation().add(randomX/10, randomY/10+.8, randomZ/10));
+        }
+//        locations.add( Utils.addingLoc(player.getLocation(), 1,0,2) );
+//        locations.add(Utils.addingLoc(player.getLocation(), 1.5,1,1));
+//        locations.add(Utils.addingLoc(player.getLocation(), 0.5,-0.5,-1));
+        for (Location loc : locations) {
+            double d1 = rand.nextInt(offsetNormalized) - offsetNormalized/2;
+            double d2 = rand.nextInt(offsetNormalized) - offsetNormalized/2;
+            player.getWorld().spawnParticle(Particle.FIREWORKS_SPARK, loc, 0, d1/10,-0.8, d2/10);
+        }
+    }
 
 }
